@@ -44,9 +44,11 @@ consumer.Received += async (sender, args) =>
         var body = args.Body.ToArray();
         string message = Encoding.UTF8.GetString(body);
         SubmitExamRequestDto submitRequestExamDto = JsonConvert.DeserializeObject<SubmitExamRequestDto>($"{message}");
+        Console.WriteLine(message);
         var _submitexamrepo = new SubmitExamRepository(context);
         var _submitExamService = new SubmitExamService(_submitexamrepo);
         var grade = _submitExamService.SubmitExam(submitRequestExamDto);
+        Console.WriteLine(grade);
         var ExamResult = new ExamResult()
         {
             ExamId = submitRequestExamDto.ExamId,
@@ -58,19 +60,18 @@ consumer.Received += async (sender, args) =>
         };
         var _examResultEvelutionRepository = new ExamResultEvelutionRepository(context);
         _examResultEvelutionRepository.AddExamResult(ExamResult);
-
+        
 
         channel.BasicAck(args.DeliveryTag, false);
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
         Console.WriteLine($"Exception: {ex.Message}");
     }
 
 
 };
-string consumerTag = channel.BasicConsume(queueName, true, consumer);
+string consumerTag = channel.BasicConsume(queueName, false, consumer);
 channel.BasicCancel(consumerTag);
 channel.Close();
 cnn.Close();
-
